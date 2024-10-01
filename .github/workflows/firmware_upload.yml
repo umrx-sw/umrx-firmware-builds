@@ -1,0 +1,99 @@
+name: Firmware Upload
+
+# Controls when the action will run. 
+on:
+  repository_dispatch:
+    types: [firmware-upload-event]
+
+  # Allows you to run this workflow manually from the Actions tab
+  workflow_dispatch:
+
+# A workflow run is made up of one or more jobs that can run sequentially or in parallel
+jobs:
+  # This workflow contains a single job called "build"
+  build:
+    # The type of runner that the job will run on
+    runs-on: ubuntu-latest
+
+    # Steps represent a sequence of tasks that will be executed as part of the job
+    steps:
+      # Checks-out your repository under $GITHUB_WORKSPACE, so your job can access it
+      - uses: actions/checkout@v4
+
+      - name: Download hex
+        uses: robinraju/release-downloader@v1
+        with:
+          # The source repository path.
+          repository: umrx-sw/umrx-firmware
+
+          # A flag to set the download target as latest release
+          # The default value is 'false'
+          latest: false
+
+          # The github tag. e.g: v1.0.1
+          # Download assets from a specific tag/version
+          tag: ${{ github.event.client_payload.release }}
+
+          # The name of the file to download.
+          # Use this field only to specify filenames other than tarball or zipball, if any.
+          fileName: ${{ github.event.client_payload.name }}.hex
+
+          # Download the attached tarball (*.tar.gz)
+          tarBall: false
+
+          # Download the attached zipball (*.zip)
+          zipBall: false
+
+          # Relative path under $GITHUB_WORKSPACE to place the downloaded file(s)
+          # It will create the target directory automatically if not present
+          # eg: out-file-path: "my-downloads" => It will create directory $GITHUB_WORKSPACE/my-downloads
+          out-file-path: ""
+
+          # Github access token to download files from private repositories
+          # https://docs.github.com/en/actions/configuring-and-managing-workflows/creating-and-storing-encrypted-secrets
+          # eg: token: ${{ secrets.MY_TOKEN }}
+          token: ${{ secrets.REPO_ACCESS_TOKEN }}
+
+      - name: Download bin
+        uses: robinraju/release-downloader@v1
+        with:
+          # The source repository path.
+          repository: umrx-sw/umrx-firmware
+
+          # A flag to set the download target as latest release
+          # The default value is 'false'
+          latest: false
+
+          # The github tag. e.g: v1.0.1
+          # Download assets from a specific tag/version
+          tag: ${{ github.event.client_payload.release }}
+
+          # The name of the file to download.
+          # Use this field only to specify filenames other than tarball or zipball, if any.
+          fileName: ${{ github.event.client_payload.name }}.bin
+
+          # Download the attached tarball (*.tar.gz)
+          tarBall: false
+
+          # Download the attached zipball (*.zip)
+          zipBall: false
+
+          # Relative path under $GITHUB_WORKSPACE to place the downloaded file(s)
+          # It will create the target directory automatically if not present
+          # eg: out-file-path: "my-downloads" => It will create directory $GITHUB_WORKSPACE/my-downloads
+          out-file-path: ""
+
+          # Github access token to download files from private repositories
+          # https://docs.github.com/en/actions/configuring-and-managing-workflows/creating-and-storing-encrypted-secrets
+          # eg: token: ${{ secrets.MY_TOKEN }}
+          token: ${{ secrets.REPO_ACCESS_TOKEN }}
+
+      - name: Create release
+        uses: 'marvinpinto/action-automatic-releases@latest'
+        with:
+          repo_token: ${{ secrets.GITHUB_TOKEN }}
+          automatic_release_tag: ${{ github.event.client_payload.release }}
+          prerelease: false
+          title: UMRX firmware ${{ github.event.client_payload.release }}
+          files: |
+            ${{ github.event.client_payload.name }}.+(hex|bin)
