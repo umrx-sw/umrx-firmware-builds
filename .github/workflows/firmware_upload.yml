@@ -89,11 +89,10 @@ jobs:
           token: ${{ secrets.REPO_ACCESS_TOKEN }}
 
       - name: Create release
-        uses: 'marvinpinto/action-automatic-releases@latest'
+        uses: 'ncipollo/release-action@v1'
         with:
-          repo_token: ${{ secrets.GITHUB_TOKEN }}
-          automatic_release_tag: ${{ github.event.client_payload.release }}
+          token: ${{ secrets.GITHUB_TOKEN }}
           prerelease: false
-          title: UMRX firmware ${{ github.event.client_payload.release }}
-          files: |
-            ${{ github.event.client_payload.name }}.+(hex|bin)
+          name: UMRX firmware ${{ github.event.client_payload.release }}
+          artifacts: |
+            ${{ github.event.client_payload.name }}.*
